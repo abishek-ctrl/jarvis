@@ -358,6 +358,40 @@ bridge on a random loopback port, and none of the tests opens an agent session.
 
 ---
 
+## Using JARVIS from your phone (Tailscale)
+
+The bridge stays on `127.0.0.1`. Tailscale Serve puts the face and the bridge
+behind HTTPS on your private tailnet, so only devices signed into your tailnet
+can reach them. Do not use Funnel, which would publish them to the internet.
+
+1. Find this Mac's tailnet name: `tailscale status` shows it, e.g.
+   `my-mac.tailnet-name.ts.net`. Below, `HOST` stands for that name.
+2. Start the bridge and the face with the names allowed:
+
+   ```bash
+   JARVIS_ALLOWED_HOSTS=HOST JARVIS_ALLOWED_ORIGINS=https://HOST \
+     npm run bridge            # or npm run bridge:local
+   VITE_ALLOWED_HOSTS=HOST VITE_BRIDGE_URL=wss://HOST:8787 npm run dev
+   ```
+
+   `VITE_BRIDGE_URL` is read when the face starts, so set it before `npm run dev`.
+3. Expose both over the tailnet:
+
+   ```bash
+   tailscale serve --bg --https=443 http://localhost:5173
+   tailscale serve --bg --https=8787 http://localhost:8787
+   ```
+
+4. On the phone, with Tailscale on and signed into the same tailnet, open
+   `https://HOST` in Chrome or Safari, tap **INITIALISE**, and allow the microphone.
+
+Anyone you add to the tailnet can talk to the agent, so keep the bridge
+read-only unless you need writes. Remote images and video go through the bridge
+and may not show on the phone, because the content policy only allows
+`localhost` for them.
+
+---
+
 ## Security
 
 The bridge's defences live in `bridge/server.mjs` and `bridge/policy.mjs`:
