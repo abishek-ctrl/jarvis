@@ -17,6 +17,7 @@
     "preview": "vite preview",
     "bridge": "node bridge/server.mjs",
     "bridge:writes": "node bridge/server.mjs --writes",
+    "bridge:local": "node bridge/server.mjs --local",
     "setup": "node scripts/setup.mjs"
   },
   "dependencies": {

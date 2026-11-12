@@ -174,10 +174,23 @@ const DISABLED = new Set(
 )
 
 /**
- * The orchestrator model. Override with JARVIS_MODEL to trade quality for pace
- * — claude-sonnet-5 is noticeably snappier on camera if Opus feels slow.
+ * The orchestrator model. By default it is Claude Haiku 5.5, fixed in code.
+ * JARVIS_MODEL is deliberately not read, so no environment variable can switch
+ * it to another model.
+ *
+ * The only other option is a local Ollama model, and it is opt-in: start the
+ * bridge with --local (`npm run bridge:local`). Then the model is taken from
+ * JARVIS_OLLAMA_MODEL and the requests go to JARVIS_OLLAMA_URL. The default
+ * path never uses Ollama.
  */
-const MODEL = process.env.JARVIS_MODEL ?? 'claude-opus-5'
+const LOCAL = process.argv.includes('--local')
+const OLLAMA_URL = process.env.JARVIS_OLLAMA_URL ?? 'http://localhost:11434'
+const OLLAMA_MODEL = (process.env.JARVIS_OLLAMA_MODEL ?? '').trim()
+if (LOCAL && !OLLAMA_MODEL) {
+  console.error('[jarvis] --local needs JARVIS_OLLAMA_MODEL, e.g. JARVIS_OLLAMA_MODEL=qwen3.5:2b')
+  process.exit(1)
+}
+const MODEL = LOCAL ? OLLAMA_MODEL : 'claude-haiku-5-5'
 
 /**
  * How hard the model thinks before answering.
@@ -1086,7 +1099,11 @@ if (!LOOPBACK) {
 console.log(
   `[jarvis] speech ${elevenKey() ? 'via ElevenLabs (key from MCP config)' : 'using browser fallback voice'}`,
 )
-console.log(`[jarvis] model ${MODEL} · effort ${EFFORT}`)
+console.log(
+  LOCAL
+    ? `[jarvis] model ${MODEL} via Ollama at ${OLLAMA_URL} (--local) · effort ${EFFORT}`
+    : `[jarvis] model ${MODEL} · effort ${EFFORT}`,
+)
 console.log(
   `[jarvis] MCP servers from config: ${Object.keys(MCP_SERVERS).join(', ') || 'none'}` +
     (ACCOUNT_CONNECTORS ? ' · account connectors ON' : ' · account connectors off'),
@@ -1369,6 +1386,19 @@ wss.on('connection', (socket) => {
       // arguments it was given. The SDK's bundled CLI is used when unset.
       ...(process.env.JARVIS_CLAUDE_EXECUTABLE
         ? { pathToClaudeCodeExecutable: process.env.JARVIS_CLAUDE_EXECUTABLE }
+        : {}),
+      // --local points the agent at Ollama's Anthropic-compatible endpoint
+      // instead of Anthropic. The API key is blanked so the real key is never
+      // sent to the local server.
+      ...(LOCAL
+        ? {
+            env: {
+              ...process.env,
+              ANTHROPIC_BASE_URL: OLLAMA_URL,
+              ANTHROPIC_AUTH_TOKEN: 'ollama',
+              ANTHROPIC_API_KEY: '',
+            },
+          }
         : {}),
       permissionMode: 'default',
       // Without this the SDK only emits whole assistant messages, and JARVIS

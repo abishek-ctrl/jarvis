@@ -108,9 +108,24 @@ WebSocket (plus a few HTTP endpoints) on `ws://localhost:8787`.
 rest. The bridge can. And because it is the Agent SDK, it authenticates off your
 existing Claude Code login: no API key, billed to that same Claude account.
 
-**The model.** `claude-opus-5` at effort `medium` by default. Override with the
-`JARVIS_MODEL` and `JARVIS_EFFORT` environment variables. On startup the bridge
-prints its choice, e.g. `[jarvis] model claude-opus-5 · effort medium`.
+**The model.** JARVIS runs only on `claude-haiku-5-5`. The model is fixed in
+`bridge/server.mjs` and `JARVIS_MODEL` is not read, so no environment variable
+can switch it. Effort defaults to `high` and can be set with `JARVIS_EFFORT`. On
+startup the bridge prints its choice, e.g. `[jarvis] model claude-haiku-5-5 · effort high`.
+
+**Local models (optional).** The default is always Haiku 5.5. To run a local
+model through [Ollama](https://ollama.com) instead, start the bridge with
+`--local`:
+
+```bash
+ollama pull qwen3.5:2b
+JARVIS_OLLAMA_MODEL=qwen3.5:2b npm run bridge:local
+```
+
+Ollama's Anthropic-compatible endpoint (`/v1/messages`) is used through the
+Agent SDK, and the Anthropic key is blanked for that run. `JARVIS_OLLAMA_URL`
+sets the server address and defaults to `http://localhost:11434`. Small local
+models are less reliable with tools than Haiku 5.5, so expect weaker answers.
 
 ### The voice pipeline
 
@@ -231,7 +246,6 @@ Everything is optional in bridge mode. Frontend settings live in `.env.local`
 | `JARVIS_BRIDGE_PORT` | `8787` | Port for the WebSocket + HTTP endpoints |
 | `JARVIS_BRIDGE_HOST` | `127.0.0.1` | Interface to listen on. Any other address puts the agent on your network |
 | `JARVIS_ALLOWED_HOSTS` | none | Extra hostnames the bridge answers to; a request for any other name gets a 403 |
-| `JARVIS_MODEL` | `claude-opus-5` | Model to run |
 | `JARVIS_EFFORT` | `medium` | Reasoning effort |
 | `JARVIS_ALLOW_WRITES` | off | `1` allows effectful tools (see below) |
 | `JARVIS_MCP_SERVERS` | all configured | Comma-separated `~/.claude.json` servers to pass on; empty passes none |

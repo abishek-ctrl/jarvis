@@ -136,16 +136,13 @@ export const env = {
   porcupineKey: str(import.meta.env.VITE_PICOVOICE_ACCESS_KEY) ?? '',
 }
 
-/** `claude-opus-5` is the strongest model; `claude-sonnet-5` trades a little
- *  quality for lower latency if you find responses feel slow on camera. */
-export const MODEL = 'claude-opus-5'
+/** JARVIS runs only on Claude Haiku 5.5. No other model is used. */
+export const MODEL = 'claude-haiku-5-5'
 
 /**
- * Fast mode runs the same Opus 5 at up to 2.5x output speed. It is a research
- * preview on the Claude API and costs $10/$50 per Mtok instead of $5/$25.
- * For a recorded demo the snappiness is worth it; flip to false to save money.
+ * Fast mode is an Opus 5 research preview and does not apply to Haiku 5.5.
  */
-export const FAST_MODE = true
+export const FAST_MODE = false
 
 /**
  * Wake-word engine.
