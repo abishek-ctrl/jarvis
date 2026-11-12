@@ -1,3 +1,5 @@
+import { isCalm } from './calm'
+
 /**
  * Score.
  *
@@ -165,6 +167,7 @@ let dissolve: ReturnType<typeof setTimeout> | null = null
 
 /** The power-up swell. Plays once, then hands over to the ambient bed. */
 export function playBoot() {
+  if (isCalm()) return
   const t = track('boot-music')
   if (!t) return
   t.el.currentTime = 0
@@ -207,6 +210,7 @@ export function playBoot() {
  * Nothing stops it. The element does not loop, so it ends when the track ends.
  */
 export function startAmbient() {
+  if (isCalm()) return
   const t = track('ambient')
   if (!t) return
   // From the top every time, so a second power-up in the same page sounds like
@@ -233,6 +237,7 @@ export function stopAll() {
 
 /** The work cue rises while a tool runs and falls the moment it's done. */
 export function working(on: boolean) {
+  if (on && isCalm()) return
   set('work', on ? LEVEL.work : 0, on ? 900 : 1400)
 }
 

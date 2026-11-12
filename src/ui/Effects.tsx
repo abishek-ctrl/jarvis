@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore, type UiEffect } from '../store'
+import { isCalm } from '../lib/calm'
 
 /**
  * One-shot frame effects, fired by JARVIS.
@@ -41,7 +42,8 @@ export function Effects() {
   // Depends on the timestamp rather than the object, which is the whole point
   // of `at` existing: five 'flash' commands in a row are five flashes.
   useEffect(() => {
-    if (!kind) return
+    // Calm mode drops the one-shot flashes and shakes entirely.
+    if (!kind || isCalm()) return
     setLive({ kind, at })
     const done = setTimeout(() => setLive(null), DURATION[kind] ?? 600)
     return () => clearTimeout(done)

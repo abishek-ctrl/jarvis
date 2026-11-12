@@ -1,3 +1,5 @@
+import { isCalm } from './calm'
+
 /**
  * Sound design.
  *
@@ -203,6 +205,7 @@ const synth: Record<Cue, () => void> = {
 }
 
 export function play(cue: Cue) {
+  if (isCalm()) return
   if (!ctx || ctx.state !== 'running') return
 
   const sample = samples.get(cue)
